@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <!-- Recall loop mark, monochrome — for the macOS menu-bar template image.
+       macOS recolours template images by alpha, so both strokes are pure black. -->
+  <path d="M52 32a20 20 0 1 1-5.8-14.1" stroke="#000000" stroke-width="7" stroke-linecap="round"/>
+  <path d="M46.5 12l.9 8.3-8.3.9" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,30 @@
+# Recorded interview audio (never commit these)
+*.webm
+*.wav
+*.m4a
+*.mp3
+*.mov
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Whisper / ASR model weights (large binaries — downloaded at runtime)
+transcriber/models/
+*.bin
+
+# Compiled native helper (built from native/*.swift via `npm run build:native`)
+desktop-app/resources/bin/system-audio-capture
+
+# Internal planning notes & loose assets (not part of the public project)
+*-plan.md
+*-design.md
+Marketing*.md
+Images/
+Recall-icon-*.png

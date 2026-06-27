@@ -1,0 +1,106 @@
+{
+  "name": "recall",
+  "version": "0.1.2",
+  "description": "Recall — private, on-device recorder & transcriber for interviews, meetings and calls (no cloud, no bot)",
+  "main": "./out/main/index.js",
+  "author": "kr-lynx",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "electron-vite build && electron-builder",
+    "package:mac": "npm run build:native && electron-vite build && electron-builder --mac",
+    "package:win": "electron-vite build && electron-builder --win",
+    "build:native": "bash build/build-native.sh",
+    "make:icons": "bash build/make-icons.sh"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.0",
+    "sherpa-onnx": "^1.13.2"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config-ts": "^3.0.0",
+    "@electron-toolkit/preload": "^3.0.1",
+    "@electron-toolkit/utils": "^3.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "electron": "^34.5.8",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^2.3.0",
+    "ffmpeg-static": "^5.3.0",
+    "postcss": "^8.4.38",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "dev.kr-lynx.recall",
+    "productName": "Recall",
+    "afterPack": "build/afterPack.cjs",
+    "directories": {
+      "buildResources": "resources"
+    },
+    "files": [
+      "out/**/*",
+      "node_modules/sherpa-onnx/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/lib",
+        "to": "lib",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/Images",
+        "to": ".",
+        "filter": [
+          "iconTemplate.png",
+          "iconTemplate@2x.png"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "entitlements": "resources/entitlements.mac.plist",
+      "entitlementsInherit": "resources/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Recall needs microphone access to record your voice.",
+        "NSScreenCaptureUsageDescription": "Recall needs screen recording permission to capture call audio."
+      }
+    },
+    "win": {
+      "icon": "resources/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+name: Build macOS app
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest # Apple Silicon runner
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: desktop-app
+        run: npm ci
+
+      # Builds the native ScreenCaptureKit helper (swiftc), bundles ffmpeg/whisper-cli,
+      # produces an ad-hoc signed .dmg (afterPack re-signs the bundled binaries).
+      - name: Build and package
+        working-directory: desktop-app
+        run: npm run package:mac
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Recall-macOS-${{ github.ref_name }}
+          path: desktop-app/dist/*.dmg
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: desktop-app/dist/*.dmg

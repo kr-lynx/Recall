@@ -1,0 +1,70 @@
+name: Build Windows installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: desktop-app
+        run: npm ci
+
+      - name: Download Windows ffmpeg
+        shell: pwsh
+        working-directory: desktop-app
+        run: |
+          $src = node -e "process.stdout.write(require('ffmpeg-static'))"
+          Copy-Item $src resources/bin/ffmpeg.exe
+
+      - name: Download Windows whisper-cli
+        shell: pwsh
+        working-directory: desktop-app
+        run: |
+          $release = Invoke-RestMethod "https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -eq "whisper-bin-x64.zip" } | Select-Object -First 1
+          if (-not $asset) { throw "whisper-bin-x64.zip not found in latest release" }
+          Invoke-WebRequest $asset.browser_download_url -OutFile whisper.zip
+          Expand-Archive whisper.zip -DestinationPath whisper-tmp
+
+          # whisper-cli.exe in newer releases, main.exe in older ones
+          $cli = Get-ChildItem -Recurse whisper-tmp -Filter "whisper-cli.exe" | Select-Object -First 1
+          if (-not $cli) { $cli = Get-ChildItem -Recurse whisper-tmp -Filter "main.exe" | Select-Object -First 1 }
+          Copy-Item $cli.FullName resources/bin/whisper-cli.exe
+
+          # DLLs must live next to the exe so Windows can find them
+          Get-ChildItem -Recurse whisper-tmp -Filter "*.dll" | Copy-Item -Destination resources/bin/
+
+          Remove-Item whisper.zip, whisper-tmp -Recurse -Force
+
+      - name: Build and package
+        working-directory: desktop-app
+        run: npm run package:win
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Recall-Windows-${{ github.ref_name }}
+          path: desktop-app/dist/*.exe
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: desktop-app/dist/*.exe
